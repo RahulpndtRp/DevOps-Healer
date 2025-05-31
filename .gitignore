@@ -48,6 +48,7 @@ logs/
 # local files
 Z_files
 .chainlit
+.files
 
 # Testing
 .pytest_cache/
