@@ -1,6 +1,6 @@
 """
-🤖 DevOps Healer - Enhanced Visual Chainlit Application
-An interactive web interface with improved visual hierarchy and separators
+🤖 DevOps Healer - Chainlit Application
+An interactive web interface for the autonomous DevOps incident response system
 """
 
 import chainlit as cl
@@ -32,77 +32,56 @@ async def start():
     # Create workflow instance
     workflow_app = create_supportops_workflow()
 
-    # Welcome message with enhanced visual hierarchy
+    # Welcome message with system capabilities
     welcome_msg = """
-# 🤖 DevOps Healer - Autonomous Incident Response
+# 🤖 Welcome to DevOps Healer!
 
----
+I'm your autonomous DevOps incident response assistant, powered by GPT-4 and specialized in:
 
-## 🚀 **System Capabilities**
+## 🔍 **Intelligent Incident Analysis**
+- CPU & Memory performance issues
+- Database performance problems  
+- Network connectivity issues
+- Storage capacity emergencies
+- Application performance degradation
 
-### 🔍 **Intelligent Analysis**
-- 💻 CPU & Memory performance monitoring
-- 🗄️ Database performance optimization  
-- 🌐 Network connectivity diagnostics
-- 💾 Storage capacity management
-- 📱 Application performance tuning
+## 🧠 **Autonomous Capabilities**
+- **Smart Classification**: GPT-4 powered incident categorization
+- **Root Cause Analysis**: Deep technical investigation
+- **Remediation Planning**: Risk-aware action planning
+- **Business Impact Assessment**: Considers criticality and SLA impact
 
-### 🧠 **AI-Powered Features**
-- 🎯 **Smart Classification** - GPT-4 powered incident categorization
-- 🔬 **Root Cause Analysis** - Deep technical investigation with reasoning
-- 📋 **Intelligent Planning** - Risk-aware remediation strategies
-- 📊 **Business Impact** - SLA and criticality assessment
+## 📋 **How to Report an Incident**
 
----
+You can report incidents in several ways:
 
-## 📝 **How to Report Incidents**
+### 🚨 **Quick Report** (Natural Language)
+Just describe your issue:
+*"Our production database is running slow and customers are complaining about timeouts"*
 
-### 🗣️ **Natural Language** (Recommended)
-Simply describe your problem in plain English:
-
-> *"Our production database is running slow and customers are complaining about checkout timeouts"*
-
-### 📊 **Structured JSON** (Advanced Users)
-For precise control with detailed metadata:
-
+### 📊 **Structured Report** (JSON)
+For detailed incidents:
 ```json
 {
-  "severity": "critical",
+  "severity": "high",
   "category": "database_performance", 
-  "description": "Connection pool exhaustion",
-  "affected_systems": ["prod-db-01", "app-servers"],
-  "symptoms": ["slow queries", "timeouts"]
+  "description": "Database connection pool exhaustion",
+  "affected_systems": ["prod-db-01", "app-server-tier"],
+  "symptoms": ["slow queries", "connection timeouts"]
 }
 ```
 
----
+### 🎯 **Available Categories**
+- `cpu_utilization` - CPU performance issues
+- `memory_utilization` - Memory leaks/capacity  
+- `disk_utilization` - Storage capacity/I/O
+- `network_connectivity` - Network routing/latency
+- `database_performance` - DB slowness/locks
+- `application_performance` - App-level issues
+- `security_incident` - Security breaches
+- `backup_failure` - Backup/recovery issues
 
-## 🎯 **Available Categories**
-
-| 🏷️ Category | 📝 Description | 💡 Examples |
-|-------------|----------------|-------------|
-| `cpu_utilization` | CPU performance & capacity | High load, throttling |
-| `memory_utilization` | Memory allocation & leaks | OOM errors, pressure |
-| `disk_utilization` | Storage capacity & I/O | Disk full, slow writes |
-| `network_connectivity` | Network routing & latency | Packet loss, timeouts |
-| `database_performance` | DB performance & locks | Slow queries, deadlocks |
-| `application_performance` | App-level issues | API errors, slowdowns |
-| `security_incident` | Security breaches | Unauthorized access |
-| `backup_failure` | Backup & recovery | Failed backups, corruption |
-
----
-
-## 🔥 **Severity Levels**
-
-- 🔴 **CRITICAL** - System down, revenue impact, immediate action required
-- 🟠 **HIGH** - Significant degradation, user impact, urgent attention needed  
-- 🟡 **MEDIUM** - Moderate issues, some impact, timely resolution required
-- 🟢 **LOW** - Minor issues, minimal impact, routine maintenance
-
----
-
-### 🚀 **Ready to Help!**
-Describe your incident below and watch the AI analyze and resolve it step-by-step!
+**Ready to help! Describe your incident or paste a structured report.**
     """
 
     await cl.Message(content=welcome_msg).send()
@@ -114,7 +93,7 @@ Describe your incident below and watch the AI analyze and resolve it step-by-ste
 
 @cl.on_message
 async def main(message: cl.Message):
-    """Handle incoming incident reports with enhanced visual feedback"""
+    """Handle incoming incident reports"""
     global workflow_app
 
     # Get current incident counter
@@ -122,87 +101,33 @@ async def main(message: cl.Message):
     incident_counter += 1
     cl.user_session.set("incident_counter", incident_counter)
 
-    # Show initial processing message with visual appeal
+    # Show processing message
     processing_msg = await cl.Message(
-        content="""
-# 🔄 Processing Incident Report
-
----
-
-## 📋 **Status**: Analyzing Input
-🤖 *Parsing incident details and preparing autonomous response...*
-
----
-        """
+        content="🔄 **Processing incident report...**\n\n*Analyzing and classifying incident...*"
     ).send()
 
     try:
         # Parse the incident from user input
         incident_data = await parse_incident_input(message.content, incident_counter)
 
-        # Create enhanced incident summary
-        summary = create_enhanced_incident_summary(incident_data)
+        # Create initial incident summary
+        summary = create_incident_summary(incident_data)
 
-        # Update with incident creation confirmation
-        processing_msg.content = f"""
-# ✅ Incident Successfully Created
-
----
-
-{summary}
-
----
-
-## 🤖 **Next Steps**
-Starting autonomous AI analysis and remediation workflow...
-
-🔄 *Initializing specialist teams and diagnostic systems...*
-
----
-        """
+        # Update the processing message
+        processing_msg.content = f"📋 **Incident Created**\n\n{summary}\n\n🤖 *Starting autonomous analysis...*"
         await processing_msg.update()
 
-        # Execute the workflow with enhanced visual updates
-        await execute_workflow_with_enhanced_updates(incident_data, processing_msg)
+        # Execute the workflow with streaming updates
+        await execute_workflow_with_updates(incident_data, processing_msg)
 
     except Exception as e:
-        error_msg = f"""
-# ❌ Error Processing Incident
-
----
-
-## 🚨 **Error Details**
-```
-{str(e)}
-```
-
-## 💡 **Suggestions**
-- Check if your JSON format is valid (if using structured input)
-- Ensure incident description contains relevant technical details
-- Try using natural language description instead
-
-## 📝 **Example Formats**
-
-**Natural Language:**
-> "Database performance critical - connection timeouts affecting users"
-
-**JSON Format:**
-```json
-{{
-  "severity": "high",
-  "category": "database_performance",
-  "description": "Your incident description"
-}}
-```
-
----
-        """
+        error_msg = f"❌ **Error Processing Incident**\n\n```\n{str(e)}\n```\n\nPlease try again with a valid incident description or JSON format."
         processing_msg.content = error_msg
         await processing_msg.update()
 
 
 async def parse_incident_input(user_input: str, incident_counter: int) -> IncidentData:
-    """Parse user input into IncidentData with enhanced logic"""
+    """Parse user input into IncidentData"""
 
     # Try to parse as JSON first
     try:
@@ -228,15 +153,16 @@ async def parse_incident_input(user_input: str, incident_counter: int) -> Incide
     except (json.JSONDecodeError, ValueError):
         pass
 
-    # Parse as natural language with enhanced keyword detection
+    # Parse as natural language
     return await parse_natural_language_incident(user_input, incident_counter)
 
 
 async def parse_natural_language_incident(
     description: str, incident_counter: int
 ) -> IncidentData:
-    """Enhanced natural language parsing with better keyword detection"""
+    """Parse natural language description into incident data"""
 
+    # Simple keyword-based parsing (could be enhanced with GPT)
     severity = IncidentSeverity.MEDIUM
     category = None
     affected_systems = []
@@ -244,112 +170,64 @@ async def parse_natural_language_incident(
 
     description_lower = description.lower()
 
-    # Enhanced severity detection
+    # Determine severity
     if any(
         word in description_lower
-        for word in [
-            "critical",
-            "down",
-            "outage",
-            "emergency",
-            "urgent",
-            "crashed",
-            "failed completely",
-        ]
+        for word in ["critical", "down", "outage", "emergency", "urgent"]
     ):
         severity = IncidentSeverity.CRITICAL
     elif any(
-        word in description_lower
-        for word in ["high", "severe", "major", "serious", "significant", "badly"]
+        word in description_lower for word in ["high", "severe", "major", "serious"]
     ):
         severity = IncidentSeverity.HIGH
-    elif any(
-        word in description_lower
-        for word in ["low", "minor", "small", "slight", "trivial"]
-    ):
+    elif any(word in description_lower for word in ["low", "minor", "small"]):
         severity = IncidentSeverity.LOW
 
-    # Enhanced category detection with more keywords
+    # Determine category
     if any(
         word in description_lower
-        for word in [
-            "database",
-            "db",
-            "sql",
-            "query",
-            "connection",
-            "mysql",
-            "postgres",
-            "mongodb",
-            "oracle",
-        ]
+        for word in ["database", "db", "sql", "query", "connection"]
     ):
         category = IncidentCategory.DATABASE_PERFORMANCE
     elif any(
-        word in description_lower
-        for word in ["cpu", "processor", "load", "compute", "cores", "processing"]
+        word in description_lower for word in ["cpu", "processor", "load", "compute"]
     ):
         category = IncidentCategory.CPU_UTILIZATION
-    elif any(
-        word in description_lower
-        for word in ["memory", "ram", "leak", "oom", "out of memory"]
-    ):
+    elif any(word in description_lower for word in ["memory", "ram", "leak"]):
         category = IncidentCategory.MEMORY_UTILIZATION
     elif any(
-        word in description_lower
-        for word in ["disk", "storage", "space", "filesystem", "capacity", "volume"]
+        word in description_lower for word in ["disk", "storage", "space", "filesystem"]
     ):
         category = IncidentCategory.DISK_UTILIZATION
     elif any(
         word in description_lower
-        for word in [
-            "network",
-            "connectivity",
-            "routing",
-            "latency",
-            "timeout",
-            "connection",
-        ]
+        for word in ["network", "connectivity", "routing", "latency"]
     ):
         category = IncidentCategory.NETWORK_CONNECTIVITY
     elif any(
-        word in description_lower
-        for word in ["application", "app", "service", "api", "web", "website"]
+        word in description_lower for word in ["application", "app", "service", "api"]
     ):
         category = IncidentCategory.APPLICATION_PERFORMANCE
     elif any(
         word in description_lower
-        for word in ["security", "breach", "attack", "unauthorized", "hack", "malware"]
+        for word in ["security", "breach", "attack", "unauthorized"]
     ):
         category = IncidentCategory.SECURITY_INCIDENT
-    elif any(
-        word in description_lower
-        for word in ["backup", "restore", "recovery", "snapshot"]
-    ):
+    elif any(word in description_lower for word in ["backup", "restore", "recovery"]):
         category = IncidentCategory.BACKUP_FAILURE
 
-    # Enhanced system extraction
+    # Extract system names (simple pattern matching)
     import re
 
     system_patterns = re.findall(
-        r"\b(?:prod-|staging-|dev-|test-)?(?:db|app|web|api|server|node|cluster)-?\w*\b",
-        description_lower,
+        r"\b(?:prod-|staging-|dev-)?(?:db|app|web|api|server)-?\w*\b", description_lower
     )
     affected_systems = list(set(system_patterns))
 
-    # Enhanced symptom extraction
-    symptom_keywords = [
-        "slow",
-        "timeout",
-        "error",
-        "fail",
-        "crash",
-        "hang",
-        "freeze",
-        "lag",
-        "delay",
-    ]
-    symptoms = [word for word in symptom_keywords if word in description_lower]
+    # Extract symptoms (split by common delimiters)
+    if "symptoms:" in description_lower:
+        symptoms_text = description_lower.split("symptoms:", 1)[1]
+        symptoms = [s.strip() for s in re.split(r"[,;.\n]", symptoms_text) if s.strip()]
 
     return IncidentData(
         incident_id=f"INC-{datetime.now().strftime('%Y%m%d')}-{incident_counter:03d}",
@@ -363,8 +241,8 @@ async def parse_natural_language_incident(
     )
 
 
-def create_enhanced_incident_summary(incident: IncidentData) -> str:
-    """Create an enhanced, visually appealing incident summary"""
+def create_incident_summary(incident: IncidentData) -> str:
+    """Create a formatted incident summary"""
 
     severity_emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}
 
@@ -379,46 +257,27 @@ def create_enhanced_incident_summary(incident: IncidentData) -> str:
         "backup_failure": "💿",
     }
 
-    # Enhanced summary with better formatting
     summary = f"""
-## 📋 **Incident Details**
-
-| 🏷️ Field | 📝 Value |
-|-----------|----------|
-| **Incident ID** | `{incident.incident_id}` |
-| **Timestamp** | `{incident.timestamp.strftime('%Y-%m-%d %H:%M:%S')}` |
-| **Severity** | {severity_emoji.get(incident.severity.value, '⚪')} **{incident.severity.value.upper()}** |
-| **Category** | {category_emoji.get(incident.category.value if incident.category else '', '📋')} **{incident.category.value.replace('_', ' ').title() if incident.category else 'Auto-detecting...'}** |
-
-### 📝 **Description**
-> {incident.description}
+**{severity_emoji.get(incident.severity.value, '⚪')} Incident ID:** `{incident.incident_id}`
+**📅 Timestamp:** {incident.timestamp.strftime('%Y-%m-%d %H:%M:%S')}
+**🔥 Severity:** {incident.severity.value.upper()}
+**{category_emoji.get(incident.category.value if incident.category else '', '📋')} Category:** {incident.category.value.replace('_', ' ').title() if incident.category else 'Auto-detecting...'}
+**📝 Description:** {incident.description}
 """
 
     if incident.affected_systems:
-        systems_list = " • ".join(
-            [f"`{system}`" for system in incident.affected_systems]
-        )
-        summary += f"""
-### 🏥 **Affected Systems**
-{systems_list}
-"""
+        summary += f"**🏥 Affected Systems:** {', '.join(incident.affected_systems)}\n"
 
     if incident.symptoms:
-        symptoms_list = " • ".join(
-            [f"`{symptom}`" for symptom in incident.symptoms[:5]]
-        )
-        summary += f"""
-### 🩺 **Symptoms Detected**
-{symptoms_list}
-"""
+        summary += f"**🩺 Symptoms:** {', '.join(incident.symptoms[:3])}{'...' if len(incident.symptoms) > 3 else ''}\n"
 
     return summary
 
 
-async def execute_workflow_with_enhanced_updates(
+async def execute_workflow_with_updates(
     incident_data: IncidentData, processing_msg: cl.Message
 ):
-    """Execute workflow with enhanced visual updates and separators"""
+    """Execute the workflow with real-time updates"""
     global workflow_app
 
     # Initialize state
@@ -443,7 +302,7 @@ async def execute_workflow_with_enhanced_updates(
     config = RunnableConfig(configurable={"thread_id": incident_data.incident_id})
 
     step_count = 0
-    workflow_sections = []
+    workflow_messages = []
 
     try:
         async for step in workflow_app.astream(initial_state, config):
@@ -451,139 +310,54 @@ async def execute_workflow_with_enhanced_updates(
             agent_name = list(step.keys())[0]
             state_update = step[agent_name]
 
-            # Create enhanced step update with visual separators
-            step_section = await create_enhanced_step_update(
-                step_count, agent_name, state_update
-            )
-            workflow_sections.append(step_section)
+            # Create step update message
+            step_msg = await create_step_update(step_count, agent_name, state_update)
+            workflow_messages.append(step_msg)
 
-            # Create comprehensive update with all sections
-            full_content = create_comprehensive_workflow_display(
-                incident_data, workflow_sections, step_count
+            # Update the processing message with all steps
+            full_content = (
+                create_incident_summary(incident_data)
+                + "\n\n"
+                + "\n\n".join(workflow_messages)
             )
             processing_msg.content = full_content
             await processing_msg.update()
 
-            # Smooth update delay for better UX
-            await asyncio.sleep(0.8)
+            # Add a small delay for better UX
+            await asyncio.sleep(0.5)
 
             if step_count > 10:  # Safety check
                 break
 
     except Exception as e:
-        error_section = f"""
-## ❌ **Workflow Error at Step {step_count + 1}**
-
----
-
-### 🚨 **Error Details**
-```
-{str(e)}
-```
-
-### 💡 **Impact**
-The workflow encountered an unexpected error but previous steps were completed successfully.
-
----
-        """
-        workflow_sections.append(error_section)
-        full_content = create_comprehensive_workflow_display(
-            incident_data, workflow_sections, step_count, has_error=True
+        error_step = (
+            f"❌ **Workflow Error at Step {step_count + 1}**\n```\n{str(e)}\n```"
+        )
+        workflow_messages.append(error_step)
+        full_content = (
+            create_incident_summary(incident_data)
+            + "\n\n"
+            + "\n\n".join(workflow_messages)
         )
         processing_msg.content = full_content
         await processing_msg.update()
 
-    # Add final completion section
-    completion_section = f"""
-## ✅ **Workflow Complete**
-
----
-
-### 📊 **Execution Summary**
-- **Total Steps**: `{step_count}`
-- **Duration**: `{datetime.now().strftime('%H:%M:%S')}`
-- **Status**: `Successfully Completed`
-
-### 🎯 **Key Achievements**
-- ✅ Incident classified and analyzed
-- ✅ Root cause investigation completed  
-- ✅ Remediation plan generated and executed
-- ✅ System status verified and documented
-
----
-
-### 🤖 **DevOps Healer Result**
-Your incident has been processed through our autonomous healing system. All recommended actions have been executed and the system is monitoring for resolution confirmation.
-
----
-    """
-
-    workflow_sections.append(completion_section)
-    final_content = create_comprehensive_workflow_display(
-        incident_data, workflow_sections, step_count, is_complete=True
+    # Add completion summary
+    completion_msg = f"\n\n✅ **Workflow Complete!** ({step_count} steps executed)"
+    full_content = (
+        create_incident_summary(incident_data)
+        + "\n\n"
+        + "\n\n".join(workflow_messages)
+        + completion_msg
     )
-    processing_msg.content = final_content
+    processing_msg.content = full_content
     await processing_msg.update()
 
 
-def create_comprehensive_workflow_display(
-    incident_data: IncidentData,
-    workflow_sections: List[str],
-    step_count: int,
-    has_error: bool = False,
-    is_complete: bool = False,
-) -> str:
-    """Create a comprehensive display with proper visual hierarchy"""
-
-    # Header with progress indication
-    if is_complete:
-        header = f"# ✅ Incident Resolution Complete - {incident_data.incident_id}"
-        status_emoji = "✅"
-        status_text = "RESOLVED"
-    elif has_error:
-        header = f"# ⚠️ Incident Processing - {incident_data.incident_id}"
-        status_emoji = "⚠️"
-        status_text = "ERROR ENCOUNTERED"
-    else:
-        header = f"# 🔄 Processing Incident - {incident_data.incident_id}"
-        status_emoji = "🔄"
-        status_text = "IN PROGRESS"
-
-    # Progress bar visual
-    progress_bar = "█" * min(step_count, 10) + "░" * max(0, 10 - step_count)
-
-    content = f"""
-{header}
-
----
-
-## 📊 **Progress Status**
-**Status**: {status_emoji} **{status_text}** | **Steps**: `{step_count}/10` | **Progress**: `{progress_bar}`
-
----
-
-{create_enhanced_incident_summary(incident_data)}
-
----
-
-# 🔄 **Autonomous Workflow Execution**
-
----
-"""
-
-    # Add all workflow sections with separators
-    for i, section in enumerate(workflow_sections, 1):
-        content += f"{section}"
-        if i < len(workflow_sections):
-            content += "\n---\n"
-
-    return content
-
-
-async def create_enhanced_step_update(
+async def create_step_update(
     step_count: int, agent_name: str, state_update: Dict[str, Any]
 ) -> str:
-    """Create visually enhanced step updates with proper formatting"""
+    """Create a formatted step update message"""
 
     agent_emoji = {
         "tribe_orchestrator": "🎯",
@@ -602,67 +376,51 @@ async def create_enhanced_step_update(
     agent_display = agent_name.replace("_", " ").replace("-", " ").title()
     emoji = agent_emoji.get(agent_name, "🤖")
 
-    # Create step header with visual hierarchy
-    step_section = f"""
-## {emoji} **Step {step_count}: {agent_display}**
+    step_msg = f"**{emoji} Step {step_count}: {agent_display}**"
 
-### 📊 **Status**: `{state_update.get('workflow_status', 'unknown').replace('_', ' ').title()}`
-"""
+    # Add status
+    status = state_update.get("workflow_status", "unknown")
+    step_msg += f"\n📊 Status: `{status}`"
 
-    # Add classification results if available
+    # Add classification info
     if state_update.get("incident_classification"):
         classification = state_update["incident_classification"]
         if classification.get("classification_method") == "autonomous_gpt4":
-            step_section += f"""
-### 🧠 **GPT-4 Classification Results**
-
-| 🏷️ Attribute | 📝 Value |
-|--------------|----------|
-| **Category** | `{classification.get('incident_category', 'Unknown')}` |
-| **Confidence** | `{classification.get('confidence_score', 0):.2f}` |
-| **Business Impact** | `{classification.get('business_impact_assessment', 'Unknown')}` |
-| **Urgency Level** | `{classification.get('urgency_level', 'Unknown')}` |
-
-#### 🤔 **AI Reasoning**
-> {classification.get('reasoning', 'No reasoning provided')[:150]}...
-"""
+            step_msg += f"\n🧠 **GPT Classification:**"
+            step_msg += f"\n  • Category: `{classification.get('incident_category', 'Unknown')}`"
+            step_msg += (
+                f"\n  • Confidence: `{classification.get('confidence_score', 0):.2f}`"
+            )
+            step_msg += f"\n  • Business Impact: `{classification.get('business_impact_assessment', 'Unknown')}`"
+            if classification.get("reasoning"):
+                step_msg += f"\n  • Reasoning: *{classification['reasoning'][:80]}...*"
         else:
-            step_section += f"""
-### 📋 **Classification Results**
+            step_msg += f"\n📋 **Classification:**"
+            step_msg += f"\n  • Category: `{classification.get('incident_category', 'Unknown')}`"
+            step_msg += (
+                f"\n  • Confidence: `{classification.get('confidence_score', 0):.2f}`"
+            )
 
-| 🏷️ Attribute | 📝 Value |
-|--------------|----------|
-| **Category** | `{classification.get('incident_category', 'Unknown')}` |
-| **Confidence** | `{classification.get('confidence_score', 0):.2f}` |
-"""
-
-    # Add specialist findings with enhanced formatting
+    # Add specialist findings
     if state_update.get("specialist_findings"):
-        step_section += "\n### 🔍 **Specialist Analysis**\n"
-
         for finding_type, finding_data in state_update["specialist_findings"].items():
             if isinstance(finding_data, dict):
-                specialist_name = finding_type.replace("_", " ").title()
-
                 if (
                     finding_data.get("analysis_method") == "autonomous_gpt4"
                     and "gpt_analysis" in finding_data
                 ):
                     gpt_analysis = finding_data["gpt_analysis"]
-                    step_section += f"""
-#### 🧠 **{specialist_name} (GPT-4 Analysis)**
-
-| 🏷️ Finding | 📝 Result |
-|------------|-----------|
-| **Issues Found** | `{', '.join(gpt_analysis.get('issues', ['None']))}` |
-| **Confidence** | `{gpt_analysis.get('confidence_score', 0):.2f}` |
-| **Severity** | `{gpt_analysis.get('severity', 'unknown').upper()}` |
-| **Recommended Actions** | `{', '.join(gpt_analysis.get('recommended_actions', ['monitor']))}` |
-
-> **AI Analysis**: {gpt_analysis.get('reasoning', 'No detailed reasoning provided')[:100]}...
-"""
+                    step_msg += f"\n🔍 **GPT Analysis ({finding_type.replace('_', ' ').title()}):**"
+                    step_msg += (
+                        f"\n  • Issues: `{', '.join(gpt_analysis.get('issues', []))}`"
+                    )
+                    step_msg += f"\n  • Confidence: `{gpt_analysis.get('confidence_score', 0):.2f}`"
+                    step_msg += f"\n  • Actions: `{', '.join(gpt_analysis.get('recommended_actions', []))}`"
                 elif "analysis_result" in finding_data:
                     analysis = finding_data["analysis_result"]
+                    step_msg += (
+                        f"\n🔍 **Analysis ({finding_type.replace('_', ' ').title()}):**"
+                    )
                     issues_key = next(
                         (
                             k
@@ -676,74 +434,41 @@ async def create_enhanced_step_update(
                         ),
                         None,
                     )
-                    issues = analysis.get(issues_key, []) if issues_key else []
+                    if issues_key:
+                        step_msg += (
+                            f"\n  • Issues: `{', '.join(analysis.get(issues_key, []))}`"
+                        )
+                    step_msg += f"\n  • Actions: `{', '.join(analysis.get('recommended_actions', []))}`"
 
-                    step_section += f"""
-#### 🔍 **{specialist_name} (Standard Analysis)**
-
-| 🏷️ Finding | 📝 Result |
-|------------|-----------|
-| **Issues Found** | `{', '.join(issues) if issues else 'None detected'}` |
-| **Actions Required** | `{', '.join(analysis.get('recommended_actions', ['monitor']))}` |
-| **Requires Response** | `{analysis.get('requires_response', False)}` |
-"""
-
-    # Add remediation planning with enhanced visuals
+    # Add remediation plan
     if state_update.get("remediation_plan"):
         plan = state_update["remediation_plan"]
-        step_section += "\n### 📋 **Remediation Plan**\n"
-
         if plan.get("plan_method") == "autonomous_gpt4":
-            step_section += f"""
-#### 🧠 **GPT-4 Generated Plan**
-
-| 🏷️ Plan Element | 📝 Details |
-|-----------------|------------|
-| **Primary Actions** | `{', '.join(plan.get('actions', ['monitor']))}` |
-| **Secondary Actions** | `{', '.join(plan.get('secondary_actions', ['none']))}` |
-| **Risk Assessment** | `{plan.get('risk_assessment', 'Unknown').upper()}` |
-| **Estimated Duration** | `{plan.get('estimated_duration', 'Unknown')}` |
-| **Approval Required** | `{plan.get('requires_approval', False)}` |
-
-#### 🤔 **Planning Reasoning**
-> {plan.get('reasoning', 'No detailed reasoning provided')[:150]}...
-"""
+            step_msg += f"\n📋 **GPT Remediation Plan:**"
+            step_msg += f"\n  • Actions: `{', '.join(plan.get('actions', []))}`"
+            step_msg += f"\n  • Risk: `{plan.get('risk_assessment', 'Unknown')}`"
+            step_msg += f"\n  • Duration: `{plan.get('estimated_duration', 'Unknown')}`"
+            step_msg += (
+                f"\n  • Approval Required: `{plan.get('requires_approval', False)}`"
+            )
         else:
-            step_section += f"""
-#### 📋 **Standard Remediation Plan**
+            step_msg += f"\n📋 **Remediation Plan:**"
+            step_msg += f"\n  • Actions: `{', '.join(plan.get('actions', []))}`"
 
-| 🏷️ Plan Element | 📝 Details |
-|-----------------|------------|
-| **Planned Actions** | `{', '.join(plan.get('actions', ['monitor']))}` |
-| **Approval Required** | `{plan.get('requires_approval', False)}` |
-"""
-
-    # Add execution results with status indicators
+    # Add execution results
     if state_update.get("execution_results"):
-        step_section += "\n### ⚡ **Execution Results**\n"
-
+        step_msg += f"\n⚡ **Execution Results:**"
         for action, result in state_update["execution_results"].items():
-            action_display = action.replace("_", " ").title()
-
             if isinstance(result, dict):
                 status = result.get("status", "Unknown")
-                status_emoji = (
-                    "✅"
-                    if status == "completed"
-                    else "🔄" if status == "monitoring_active" else "⚠️"
-                )
-
-                step_section += f"- {status_emoji} **{action_display}**: `{status}`\n"
-
-                if result.get("verification"):
-                    step_section += f"  - 🔍 Verification: `{result['verification']}`\n"
+                step_msg += f"\n  • {action.replace('_', ' ').title()}: `{status}`"
             else:
-                step_section += f"- ✅ **{action_display}**: `{str(result)}`\n"
+                step_msg += f"\n  • {action.replace('_', ' ').title()}: `{str(result)}`"
 
-    return step_section
+    return step_msg
 
 
-# Enhanced author renaming with emojis
+# Custom author renaming
 @cl.author_rename
 def rename(orig_author: str):
     rename_dict = {"Assistant": "🤖 DevOps Healer", "User": "👤 DevOps Engineer"}
@@ -751,6 +476,7 @@ def rename(orig_author: str):
 
 
 if __name__ == "__main__":
+    # This allows running the app directly
     import subprocess
 
     subprocess.run(["chainlit", "run", __file__, "-w"])

@@ -11,6 +11,7 @@ from ..agents.specialists.disk import DiskMonitorSpecialist
 from ..agents.specialists.network import NetworkMonitorSpecialist
 from ..agents.specialists.database import DatabasePerformanceSpecialist
 from ..agents.specialists.response import ComputeResourceSpecialist
+from ..agents.utils.classifiers import InputIntentClassifier
 
 
 def create_supportops_workflow():
@@ -29,6 +30,9 @@ def create_supportops_workflow():
 
     # Initialize response specialists
     compute_resource_specialist = ComputeResourceSpecialist()
+
+    # Classfier
+    classifier = InputIntentClassifier()
 
     # Import additional response specialists
     try:
@@ -51,6 +55,10 @@ def create_supportops_workflow():
 
     # Create workflow graph
     workflow = StateGraph(SupportOpsState)
+
+    # ⬇️ Insert classifier and fallback first
+    workflow.add_node("classify-input", classifier.classify_input)
+    workflow.add_node("fallback-handler", classifier.fallback_handler)
 
     # Add all nodes
     workflow.add_node("tribe_orchestrator", tribe_orchestrator.execute)
@@ -110,8 +118,10 @@ def create_supportops_workflow():
         else:
             return END
 
+    workflow.add_edge(START, "classify-input")
+    workflow.add_conditional_edges("classify-input", lambda s: s["current_agent"])
+
     # Add edges with enhanced routing
-    workflow.add_edge(START, "tribe_orchestrator")
     workflow.add_conditional_edges("tribe_orchestrator", route_from_tribe)
     workflow.add_conditional_edges("diagnostics-squad", route_from_diagnostics)
 

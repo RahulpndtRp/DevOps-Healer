@@ -34,6 +34,35 @@ async def run_autonomous_test_scenarios():
     # Enhanced test scenarios with more realistic data
     test_scenarios = [
         {
+            "name": "💾 Critical Storage Capacity Emergency",
+            "incident": IncidentData(
+                incident_id="INC-2024-004",
+                timestamp=datetime.now(),
+                severity=IncidentSeverity.CRITICAL,
+                category=IncidentCategory.DISK_UTILIZATION,
+                description="What is 1+2?",
+                affected_systems=[
+                    "prod-db-storage-tier",
+                    "backup-storage-san",
+                    "log-archive-system",
+                ],
+                symptoms=[
+                    "Primary DB storage at 97% capacity",
+                    "Transaction log growth rate: 1GB/hour",
+                    "Backup storage at 95% capacity",
+                    "Log rotation job failing for 3 days",
+                    "Database write operations slowing down",
+                ],
+                metadata={
+                    "alert_source": "storage_monitor",
+                    "storage_type": "high_performance_ssd",
+                    "growth_rate": "1GB_per_hour",
+                    "cleanup_job_status": "failed",
+                    "estimated_time_to_full": "6_hours",
+                },
+            ),
+        },
+        {
             "name": "🔥 Production Database Crisis",
             "incident": IncidentData(
                 incident_id="INC-2024-001",
